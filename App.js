@@ -1,7 +1,13 @@
-import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Button } from "react-native";
-import MapView, { Marker, Callout } from "react-native-maps";
+import { useRef, useState } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
+import MapView, { Callout, Marker, Overlay } from "react-native-maps";
+import * as FileSystem from "expo-file-system";
+import { shareAsync } from "expo-sharing";
+
+// npx expo install react-native-maps
+// npx expo install expo-sharing
+// npx expo install expo-file-system
 
 let locationsOfInterest = [
   {
@@ -10,7 +16,7 @@ let locationsOfInterest = [
       latitude: -27.2,
       longitude: 145,
     },
-    description: "My first marker",
+    description: "My First Marker",
   },
   {
     title: "Second",
@@ -18,13 +24,13 @@ let locationsOfInterest = [
       latitude: -30.2,
       longitude: 150,
     },
-    description: "My second marker",
+    description: "My Second Marker",
   },
 ];
 
 export default function App() {
-  const [count, setCount] = useState(0)
-  const [draggableMarker, setDraggableMarker] = useState({
+  const [count, setCount] = useState(0);
+  const [draggableMarkerCoord, setDraggableMarkerCoord] = useState({
     longitude: 148.11,
     latitude: -26.85,
   });
@@ -33,7 +39,7 @@ export default function App() {
     console.log(region);
   };
 
-  const showLocationOfInterest = () => {
+  const showLocationsOfInterest = () => {
     return locationsOfInterest.map((item, index) => {
       return (
         <Marker
@@ -46,35 +52,35 @@ export default function App() {
     });
   };
 
-
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
       <MapView
         style={styles.map}
         onRegionChange={onRegionChange}
         initialRegion={{
           latitude: -26.852691607783505,
           latitudeDelta: 27.499085419977938,
-          longitude: 147.1104129487327,
+          longitude: 148.1104129487327,
           longitudeDelta: 15.952148000000022,
         }}
       >
-        {showLocationOfInterest()}
-        <Marker 
+        {showLocationsOfInterest()}
+        <Marker
           draggable
           pinColor="#0000ff"
-          coordinate={draggableMarker}
-          onDragEnd={(e) => setDraggableMarker(e.nativeEvent.coordinate)}
+          coordinate={draggableMarkerCoord}
+          onDragEnd={(e) => setDraggableMarkerCoord(e.nativeEvent.coordinate)}
         />
-        <Marker pinColor="#00ff00" coordinate={{latitude: -35, longitude: 147 }}>
-          <Callout>
-            <Text>Count: {count}</Text>
-            <Button title="Increment count" onPress={() => setCount(count + 1)} />
-            <Button title="Take snapshot and Share" onPress={takeSnapshotAndShare} />
-          </Callout>
-        </Marker>
+        <Marker
+          pinColor="#00ff00"
+          coordinate={{ latitude: -35, longitude: 147 }}
+        ></Marker>
       </MapView>
+      <Callout style={styles.mapOverlay}>
+        <Text>Count: {count}</Text>
+        <Button title="Increment Count" onPress={() => setCount(count + 1)} />
+      </Callout>
+      <StatusBar style="auto" />
     </View>
   );
 }
@@ -82,6 +88,9 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   map: {
     width: "100%",
@@ -90,7 +99,7 @@ const styles = StyleSheet.create({
   mapOverlay: {
     position: "absolute",
     bottom: 50,
-    backgroundColor: "white",
+    backgroundColor: "#ffffff",
     borderWidth: 2,
     borderRadius: 5,
     padding: 16,
